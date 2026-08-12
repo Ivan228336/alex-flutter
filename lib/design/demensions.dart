@@ -1,4 +1,4 @@
 const double fontSize16 = 16;
 
-String visibleText = "ПОКАЗАТЬ";
-String unVisibleText = "СКРЫТЬ";
+String visibleText = "ПОКАЗАТЬ ГРАФИКУ";
+String unVisibleText = "СКРЫТЬ ГРАФИКУ";

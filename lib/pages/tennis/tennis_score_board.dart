@@ -288,12 +288,12 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
 
     if (_isStreaming) {
       result = await apiService.stopStream();
-      if (result != null && !result.startsWith('Ошибка')) {
+      if (result != null && result.contains('Трансляция')) {
         success = true;
       }
     } else {
       result = await apiService.startStream();
-      if (result != null && !result.startsWith('Ошибка')) {
+      if (result != null && result.contains('Трансляция')) {
         success = true;
       }
     }
@@ -416,9 +416,9 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
   Widget _playersInfo() {
     return Row(
       children: <Widget>[
-        Expanded(child: _firstPlayer()),
-        Expanded(child: _clearButtons()),
-        Expanded(child: _secondPlayer()),
+        Expanded(flex: 1, child: _firstPlayer()),
+        Expanded(flex: 2, child: _clearButtons()),
+        Expanded(flex: 1, child: _secondPlayer()),
       ],
     );
   }
@@ -461,14 +461,15 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
       children: [
         Expanded(flex: 1, child: Container()),
         TennisPanelButton(
-          text: "ОЧИСТИТЬ",
+          text: "ОЧИСТИТЬ ПОЛЯ",
           heigh: 0.6,
-          fontSize: 0.2,
+          fontSize: 0.18,
           onPressed: () => _clearAll(),
-          flex: 3,
+          flex: 8,
         ),
+        Expanded(flex: 1, child: Container()),
         Expanded(
-          flex: 2,
+          flex: 8,
           child: ElevatedButton(
             onPressed: _isLoadingStream ? null : _toggleStream,
             style: ElevatedButton.styleFrom(
@@ -484,13 +485,13 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
             )
                 : Text(
-              _isStreaming ? "СТОП" : "СТРИМ",
+              _isStreaming ? "ОСТАНОВИТЬ ТРАНСЛЯЦИЮ" : "ЗАПУСТИТЬ ТРАНСЛЯЦИЮ",
               style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.01),
             ),
           ),
         ),
         Expanded(
-          flex: 1,
+          flex: 2,
           child: Center(
             child: SizedBox(
               width: 48,
@@ -541,9 +542,9 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
         TennisPanelButton(
           text: visibleButtonText,
           heigh: 0.6,
-          fontSize: 0.2,
+          fontSize: 0.18,
           onPressed: () => _updateVisible(),
-          flex: 3,
+          flex: 8,
         ),
         Expanded(flex: 1, child: Container()),
       ],
