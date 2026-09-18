@@ -80,7 +80,7 @@ class ApiService {
     try {
       final response = await http
           .post(Uri.parse('http://$serverIp:8000/vmix/stream/start/$courtId'))
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 9));
 
       if (response.statusCode == 200) {
         return "Трансляция запущена";
@@ -102,7 +102,7 @@ class ApiService {
     try {
       final response = await http
           .post(Uri.parse('http://$serverIp:8000/vmix/stream/stop/$courtId'))
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 9));
 
       if (response.statusCode == 200) {
         return "Трансляция остановлена";

@@ -61,7 +61,26 @@ class Player {
 }
 
 class TennisScoreBoard extends StatefulWidget {
-  const TennisScoreBoard({super.key});
+  final ApiService apiService;
+  final String serverIp;
+  final int courtId;
+  final void Function(String ip, int courtId) onServerConfigChanged;
+  final VoidCallback onExit;
+  final bool isStreaming;
+  final bool isLoadingStream;
+  final VoidCallback onStreamToggle;
+
+  const TennisScoreBoard({
+    super.key,
+    required this.apiService,
+    required this.serverIp,
+    required this.courtId,
+    required this.onServerConfigChanged,
+    required this.onExit,
+    required this.isStreaming,
+    required this.isLoadingStream,
+    required this.onStreamToggle,
+  });
 
   @override
   State<StatefulWidget> createState() => _TennisScoreBoardState();
@@ -75,10 +94,6 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
 
   Player leftPlayer = Player();
   Player rightPlayer = Player();
-
-  String serverIp = "127.0.0.1";
-
-  late ApiService apiService;
 
   int currentServer = 0;
 
@@ -108,11 +123,9 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
     setState(() {});
   }
 
-  String historyString = "";
+  // String historyString = "";
 
   List<Color>? colors = List.from(defaultColors);
-
-  int courtId = 0;
 
   Color configButtonColor = Colors.grey;
 
@@ -123,7 +136,7 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
   Future<void> sendScoreAndNotify([int? server]) async {
 
     server = server ?? currentServer;
-    final result = await apiService.postScore(leftPlayer, rightPlayer, isVisible, server);
+    final result = await widget.apiService.postScore(leftPlayer, rightPlayer, isVisible, server);
 
     if (result != "Успех") {
       setState(() {
@@ -152,7 +165,6 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
     // );
   }
 
-  final asyncPrefs = SharedPreferencesAsync();
 
   @override
   void initState() {
@@ -162,9 +174,6 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     firstPlayerFocusNode = FocusNode();
     secondPlayerFocusNode = FocusNode();
-    apiService  = ApiService(serverIp: serverIp, courtId: 0);
-
-    _loadIp();
     firstPlayerFocusNode.addListener(() {
       if (!firstPlayerFocusNode.hasFocus) {
         leftPlayer.name = firstPlayerTextController.text;
@@ -178,18 +187,6 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
         sendScoreAndNotify();
       }
     });
-  }
-
-  Future<void> _loadIp() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      serverIp = prefs.getString('ip') ?? "168.0.0.100";
-    });
-  }
-
-  Future<void> _saveIp(String newIp) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString('ip', newIp);
   }
 
   @override
@@ -270,52 +267,52 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
 
   }
 
-  bool _isStreaming = false;   // текущее состояние стрима
-  bool _isLoadingStream = false;
+  // bool _isStreaming = false;   // текущее состояние стрима
+  // bool _isLoadingStream = false;
 
-  Future<void> _toggleStream() async {
-    // Показываем индикатор загрузки (можно заблокировать кнопку)
-    // Для простоты используем setState для флага загрузки
-    // но можно обойтись без отдельного флага, просто выключив кнопку
-    // Я добавлю булевую переменную _isLoadingStream для блокировки
-
-    setState(() {
-      _isLoadingStream = true;
-    });
-
-    String? result;
-    bool success = false;
-
-    if (_isStreaming) {
-      result = await apiService.stopStream();
-      if (result != null && result.contains('Трансляция')) {
-        success = true;
-      }
-    } else {
-      result = await apiService.startStream();
-      if (result != null && result.contains('Трансляция')) {
-        success = true;
-      }
-    }
-
-    setState(() {
-      _isLoadingStream = false;
-      if (success) {
-        _isStreaming = !_isStreaming;
-      }
-    });
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(result ?? 'Неизвестная ошибка'),
-        backgroundColor: success ? Colors.green : Colors.red,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
+  // Future<void> _toggleStream() async {
+  //   // Показываем индикатор загрузки (можно заблокировать кнопку)
+  //   // Для простоты используем setState для флага загрузки
+  //   // но можно обойтись без отдельного флага, просто выключив кнопку
+  //   // Я добавлю булевую переменную _isLoadingStream для блокировки
+  //
+  //   setState(() {
+  //     _isLoadingStream = true;
+  //   });
+  //
+  //   String? result;
+  //   bool success = false;
+  //
+  //   if (_isStreaming) {
+  //     result = await apiService.stopStream();
+  //     if (result != null && result.contains('Трансляция')) {
+  //       success = true;
+  //     }
+  //   } else {
+  //     result = await apiService.startStream();
+  //     if (result != null && result.contains('Трансляция')) {
+  //       success = true;
+  //     }
+  //   }
+  //
+  //   setState(() {
+  //     _isLoadingStream = false;
+  //     if (success) {
+  //       _isStreaming = !_isStreaming;
+  //     }
+  //   });
+  //
+  //   if (!mounted) return;
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text(result ?? 'Неизвестная ошибка'),
+  //       backgroundColor: success ? Colors.green : Colors.red,
+  //       behavior: SnackBarBehavior.floating,
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  //       duration: const Duration(seconds: 2),
+  //     ),
+  //   );
+  // }
 
   // void _updateGame(Player player) {
   //   setState(() {
@@ -468,77 +465,87 @@ class _TennisScoreBoardState extends State<TennisScoreBoard> {
           flex: 8,
         ),
         Expanded(flex: 1, child: Container()),
+
+        // ===== Кнопка трансляции (состояние из MainScreen) =====
         Expanded(
           flex: 8,
           child: ElevatedButton(
-            onPressed: _isLoadingStream ? null : _toggleStream,
+            onPressed: widget.isLoadingStream ? null : widget.onStreamToggle,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _isStreaming ? Colors.red : Colors.green,
+              backgroundColor: widget.isStreaming ? Colors.red : Colors.green,
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 8),
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(vertical: 8),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: _isLoadingStream
-                ? SizedBox(
+            child: widget.isLoadingStream
+                ? const SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
             )
                 : Text(
-              _isStreaming ? "ОСТАНОВИТЬ ТРАНСЛЯЦИЮ" : "ЗАПУСТИТЬ ТРАНСЛЯЦИЮ",
-              style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.01),
-            ),
+                  widget.isStreaming ? "ОСТАНОВИТЬ ТРАНСЛЯЦИЮ" : "ЗАПУСТИТЬ ТРАНСЛЯЦИЮ",
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.01),
+                ),
           ),
         ),
+        Expanded(flex: 1, child: Container()),
+
+        // ===== НОВАЯ кнопка: возврат в базовый режим =====
+        TennisPanelButton(
+          text: "БАЗОВЫЙ РЕЖИМ",
+          heigh: 0.6,
+          fontSize: 0.18,
+          onPressed: widget.onExit,
+          flex: 8,
+        ),
+        Expanded(flex: 1, child: Container()),
+
+        // ===== Шестерёнка настроек =====
         Expanded(
-          flex: 2,
+          flex: 4,
           child: Center(
-            child: SizedBox(
-              width: 48,
-              height: 48,
+            child: AspectRatio(
+              aspectRatio: 1,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: configButtonColor,
-                  shape: CircleBorder(),
+                  shape: const CircleBorder(),
                   padding: EdgeInsets.zero,
                 ),
                 onPressed: () {
-                  showIpDialog(context, serverIp, courtId, (newIp, newCourtId) async {
-                    setState(() {
-                      serverIp = newIp;
-                      courtId = newCourtId;
-                    });
-                    _saveIp(newIp);
-                    apiService.updateServerIp(newIp, newCourtId);
-                    String? message = await apiService.getHealth();
-                    message != null && message.contains("успешно")
-                        ? setState(() {
-                          configButtonColor = Colors.green;
-                        })
-                        : setState(() {
-                          configButtonColor = Colors.redAccent;
-                        });
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(message ?? "Неизвестая ошибка"),
-                            backgroundColor: message != null && message.contains("успешно")
-                                ? Colors.green
-                                : Colors.redAccent,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            duration: const Duration(seconds: 2),
-                          )
-                      );
-                    }
+                  showIpDialog(context, widget.serverIp, widget.courtId, (newIp, newCourtId) async {
+                    widget.onServerConfigChanged(newIp, newCourtId);
+                    widget.apiService.updateServerIp(newIp, newCourtId);
 
+                    final message = await widget.apiService.getHealth();
+                    final ok = message != null && message.contains("успешно");
+                    if (!mounted) return;
+                    setState(() {
+                      configButtonColor = ok ? Colors.green : Colors.redAccent;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message ?? "Неизвестная ошибка"),
+                        backgroundColor: ok ? Colors.green : Colors.redAccent,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
                   });
                 },
-                child: Icon(Icons.settings, color: Colors.white),
+                child: const Icon(Icons.settings, color: Colors.white),
               ),
             ),
           ),
         ),
+        Expanded(flex: 1, child: Container()),
+        // ===== Показать/Скрыть =====
         TennisPanelButton(
           text: visibleButtonText,
           heigh: 0.6,
